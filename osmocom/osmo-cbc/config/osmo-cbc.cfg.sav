@@ -1,0 +1,18 @@
+log stderr
+ logging level main notice
+ logging level smscb notice
+ logging level cbsp notice
+ logging level sbcap notice
+ logging level asn1c notice
+ logging level rest notice
+cbc
+ unknown-peers accept
+ ecbe
+  local-ip 10.10.10.70
+  local-port 8080
+ cbsp
+  local-ip 10.10.10.70
+  local-port 48049
+ sbcap
+  local-ip 10.10.10.70
+  local-port 29168

@@ -1,0 +1,114 @@
+version: '3.4'
+
+networks:
+  OPEN5GS:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.20.0/24
+
+#volumes:
+
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks:
+      OPEN5GS:
+        ipv4_address: 10.10.20.10
+
+  mongosetup:
+    image: mongo
+    restart: no
+    depends_on:
+      - mongo
+    networks:
+      OPEN5GS:
+    command: ['sleep','infinity']
+#    command: [
+#      'bash',
+#      '-c',
+#      'sleep 100 && apt-get update \
+#      && apt-get install -y git \
+#      && cd /tmp \
+#      && git clone https://github.com/open5gs/open5gs \
+#      && mongosh --host=mongo:27017 -u root -p example --authenticationDatabase admin open5gs --eval "db.createUser({ user: \"open5gs\", pwd: \"open5gs\", roles: [ { role: \"readWrite\", db: \"open5gs\" } ] })" \
+#      && mongosh --host=mongo:27017 -u root -p example --authenticationDatabase admin open5gs ./open5gs/docs/assets/webui/mongo-init.js'
+#    ]
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+    depends_on:
+      - mongo
+    networks:
+      OPEN5GS:
+        ipv4_address: 10.10.20.11
+
+  open5gs_webui:
+    image: registry.the-resolvers.net/open5gs/open5gs-webui:latest
+    restart: always
+    ports:
+      - 9999:9999
+    environment:
+      DB_URI: mongodb://open5gs:open5gs@mongo:27017/open5gs
+    depends_on:
+      - mongo
+      - mongosetup
+    networks:
+      OPEN5GS:
+        ipv4_address: 10.10.20.12
+
+
+  open5gs_hss:
+    image: registry.the-resolvers.net/open5gs/open5gs-base
+    container_name: open5gs-hss
+    restart: unless-stopped
+    depends_on:
+      - mongo
+      - mongosetup
+    volumes:
+      - ./open5gs-hss:/config
+    command: /opt/open5gs/bin/open5gs-hssd -c /config/hss.yaml
+    networks:
+      OPEN5GS:
+        ipv4_address: 10.10.20.20
+
+  open5gs_mme:
+    image: registry.the-resolvers.net/open5gs/open5gs-base
+    container_name: open5gs-mme
+    restart: unless-stopped
+    depends_on:
+      - open5gs_hss
+    volumes:
+      - ./open5gs-mme:/config
+    command: /opt/open5gs/bin/open5gs-mmed -c /config/mme.yaml
+    networks:
+      OPEN5GS:
+        ipv4_address: 10.10.20.30
+
+
+
+  srsran_enb:
+    image: registry.the-resolvers.net/open5gs/srsran-limesdr
+    container_name: srsran-enb
+    restart: unless-stopped
+    depends_on:
+      - open5gs_mme
+    volumes:
+      - ./srsran:/config
+    command: ["srsenb", "/config/enb.conf"]
+    networks:
+      OPEN5GS:
+        ipv4_address: 10.10.20.100
+    privileged: true

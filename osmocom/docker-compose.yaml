@@ -1,0 +1,103 @@
+version: '3.4'
+
+networks:
+  OSMOCOM:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.10.0/24
+
+volumes:
+  osmo-hlr_data:
+  osmo-msc_data:
+
+services:
+  osmo-stp:
+    image: registry.the-resolvers.net/osmocom/osmo-stp
+    container_name: osmo-stp
+    restart: unless-stopped
+    volumes:
+      - ./osmo-stp/config:/config
+    command: /usr/local/bin/osmo-stp -c /config/osmo-stp.cfg
+    networks:
+      OSMOCOM:
+        ipv4_address: 10.10.10.10
+
+  osmo-hlr:
+    image: registry.the-resolvers.net/osmocom/osmo-hlr
+    container_name: osmo-hlr
+    restart: unless-stopped
+    volumes:
+      - osmo-hlr_data:/data
+      - ./osmo-hlr/config:/config
+    command: /usr/local/bin/osmo-hlr -c /config/osmo-hlr.cfg
+    networks:
+      OSMOCOM:
+        ipv4_address: 10.10.10.20
+
+  osmo-msc:
+    image: registry.the-resolvers.net/osmocom/osmo-msc
+    container_name: osmo-msc
+    restart: unless-stopped
+    volumes:
+      - osmo-msc_data:/data
+      - ./osmo-msc/config:/config
+    command: /usr/local/bin/osmo-msc -c /config/osmo-msc.cfg
+    networks:
+      OSMOCOM:
+        ipv4_address: 10.10.10.30
+    depends_on:
+      - osmo-stp
+      - osmo-hlr
+      - osmo-mgw
+
+  osmo-mgw:
+    image: registry.the-resolvers.net/osmocom/osmo-mgw
+    container_name: osmo-mgw
+    restart: unless-stopped
+    volumes:
+      - ./osmo-mgw/config:/config
+    command: /usr/local/bin/osmo-mgw -c /config/osmo-mgw.cfg
+    networks:
+      OSMOCOM:
+        ipv4_address: 10.10.10.40
+
+  osmo-bsc:
+    image: registry.the-resolvers.net/osmocom/osmo-bsc
+    container_name: osmo-bsc
+    restart: unless-stopped
+    volumes:
+      - ./osmo-bsc/config:/config
+    command: /usr/local/bin/osmo-bsc -c /config/osmo-bsc.cfg
+    networks:
+      OSMOCOM:
+        ipv4_address: 10.10.10.50
+    depends_on:
+      - osmo-stp
+      - osmo-cbc
+
+  osmo-bts:
+    image: registry.the-resolvers.net/osmocom/osmobts-limesdr
+    container_name: osmo-bts
+    restart: unless-stopped
+    volumes:
+      - ./osmobts-limesdr/config:/config
+      - /dev:/dev
+    networks:
+      OSMOCOM:
+        ipv4_address: 10.10.10.60
+    depends_on:
+      - osmo-bsc
+    privileged: true
+
+  osmo-cbc:
+    image: registry.the-resolvers.net/osmocom/osmo-cbc
+    container_name: osmo-cbc
+    restart: unless-stopped
+    volumes:
+      - ./osmo-cbc/config:/config
+    command: /usr/local/bin/osmo-cbc -c /config/osmo-cbc.cfg
+    networks:
+      OSMOCOM:
+        ipv4_address: 10.10.10.70

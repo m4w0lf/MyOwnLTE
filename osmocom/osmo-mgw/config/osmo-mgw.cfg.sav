@@ -1,0 +1,24 @@
+!
+! MGCP configuration example
+!
+log gsmtap 10.10.10.254
+  logging filter all 1
+  logging print file 1
+  logging level all debug
+log stderr
+  logging filter all 1
+  logging print file 1
+  logging level all debug
+mgcp
+  bind ip 10.10.10.40
+  rtp port-range 4002 16001
+  rtp bind-ip 10.10.10.40
+  rtp ip-probing
+#  rtp ip-tos 184
+  bind port 2427
+  number endpoints 31
+  loop 0
+  force-realloc 1
+  rtcp-omit
+  rtp-patch ssrc
+  rtp-patch timestamp
