@@ -2,11 +2,13 @@ version: '3.4'
 
 networks:
   OPEN5GS:
-    driver: bridge
+    driver: macvlan
+    driver_opts:
+      parent: bond0.4000
     ipam:
       driver: default
       config:
-        - subnet: 10.10.20.0/24
+        - subnet: 192.168.186.0/24
 
 #volumes:
 
@@ -19,7 +21,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
     networks:
       OPEN5GS:
-        ipv4_address: 10.10.20.10
+        ipv4_address: 192.168.186.10
 
   mongosetup:
     image: mongo
@@ -53,7 +55,7 @@ services:
       - mongo
     networks:
       OPEN5GS:
-        ipv4_address: 10.10.20.11
+        ipv4_address: 192.168.186.11
 
   open5gs_webui:
     image: registry.the-resolvers.net/open5gs/open5gs-webui:latest
@@ -67,7 +69,7 @@ services:
       - mongosetup
     networks:
       OPEN5GS:
-        ipv4_address: 10.10.20.12
+        ipv4_address: 192.168.186.12
 
 
   open5gs_hss:
@@ -82,7 +84,7 @@ services:
     command: /opt/open5gs/bin/open5gs-hssd -c /config/hss.yaml
     networks:
       OPEN5GS:
-        ipv4_address: 10.10.20.20
+        ipv4_address: 192.168.186.20
 
   open5gs_mme:
     image: registry.the-resolvers.net/open5gs/open5gs-base
@@ -95,20 +97,4 @@ services:
     command: /opt/open5gs/bin/open5gs-mmed -c /config/mme.yaml
     networks:
       OPEN5GS:
-        ipv4_address: 10.10.20.30
-
-
-
-  srsran_enb:
-    image: registry.the-resolvers.net/open5gs/srsran-limesdr
-    container_name: srsran-enb
-    restart: unless-stopped
-    depends_on:
-      - open5gs_mme
-    volumes:
-      - ./srsran:/config
-    command: ["srsenb", "/config/enb.conf"]
-    networks:
-      OPEN5GS:
-        ipv4_address: 10.10.20.100
-    privileged: true
+        ipv4_address: 192.168.186.30
