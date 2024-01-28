@@ -54,8 +54,9 @@ RUN apt-get update && apt-get install -y \
                 libcurl4 \           
                 libtins4.0 \           
                 libtalloc2 \
-				libcurl3-gnutls \
+		libcurl3-gnutls \
 		screen \
+		iproute2 \
         && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/open5gs /opt/open5gs
