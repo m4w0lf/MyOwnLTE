@@ -165,3 +165,21 @@ services:
       OPEN5GS:
         ipv4_address: 192.168.186.51
     privileged: true
+
+
+
+####### ENB #######
+  srsran_enb:
+    image: registry.the-resolvers.net/open5gs/srsran-limesdr
+    container_name: srsran-enb
+    restart: unless-stopped
+    depends_on:
+      - open5gs_mme
+    volumes:
+      - ./srsran:/config
+    command: ["srsenb", "/config/enb.conf"]
+    networks:
+      OPEN5GS:
+        ipv4_address: 192.168.186.100
+    privileged: true
+
