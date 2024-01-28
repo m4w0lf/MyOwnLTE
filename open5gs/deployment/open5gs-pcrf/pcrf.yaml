@@ -8,7 +8,7 @@ global:
     ue: 1024  # The number of UE can be increased depending on memory size.
 #    peer: 64
 
-hss:
-  freeDiameter: /config/hss.conf
+pcrf:
+  freeDiameter: /config/pcrf.conf
 #  sms_over_ims: "sip:smsc.mnc001.mcc001.3gppnetwork.org:7060;transport=tcp"
 #  use_mongodb_change_stream: true

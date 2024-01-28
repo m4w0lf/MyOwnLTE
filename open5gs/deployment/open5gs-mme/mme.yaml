@@ -1,5 +1,5 @@
 logger:
-  file: /tmp/mme.log
+  file: /dev/stdout
   level: debug   # fatal|error|warn|info(default)|debug|trace
 
 global:
@@ -11,31 +11,31 @@ mme:
   freeDiameter: /config/mme.conf
   s1ap:
     server:
-      - address: 10.10.20.30
+      - address: 192.168.186.30
   gtpc:
     server:
-      - address: 10.10.20.30
+      - address: 192.168.186.30
     client:
       sgwc:
-        - address: 10.10.20.40
+        - address: 192.168.186.40
       smf:
-        - address: 10.10.10.50
-          apn: wap
+        - address: 192.168.186.50
+          apn: data.test.net
   metrics:
     server:
-      - address: 10.10.20.30
+      - address: 192.168.186.30
         port: 9090
   gummei:
     - plmn_id:
         mcc: 999
-        mnc: 70
+        mnc: 99
       mme_gid: 2
       mme_code: 1
   tai:
     - plmn_id:
         mcc: 999
-        mnc: 70
-      tac: 1
+        mnc: 99
+      tac: 39999
   security:
     integrity_order : [ EIA2, EIA1, EIA0 ]
     ciphering_order : [ EEA0, EEA1, EEA2 ]

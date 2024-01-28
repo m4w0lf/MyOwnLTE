@@ -10,7 +10,8 @@ networks:
       config:
         - subnet: 192.168.186.0/24
 
-#volumes:
+volumes:
+  mongo_data:
 
 services:
   mongo:
@@ -22,25 +23,19 @@ services:
     networks:
       OPEN5GS:
         ipv4_address: 192.168.186.10
+    volumes:
+      - mongo_data:/data/db
 
   mongosetup:
     image: mongo
-    restart: no
+#    restart: no
     depends_on:
       - mongo
+    volumes:
+      - ./mongoinit:/config
     networks:
       OPEN5GS:
-    command: ['sleep','infinity']
-#    command: [
-#      'bash',
-#      '-c',
-#      'sleep 100 && apt-get update \
-#      && apt-get install -y git \
-#      && cd /tmp \
-#      && git clone https://github.com/open5gs/open5gs \
-#      && mongosh --host=mongo:27017 -u root -p example --authenticationDatabase admin open5gs --eval "db.createUser({ user: \"open5gs\", pwd: \"open5gs\", roles: [ { role: \"readWrite\", db: \"open5gs\" } ] })" \
-#      && mongosh --host=mongo:27017 -u root -p example --authenticationDatabase admin open5gs ./open5gs/docs/assets/webui/mongo-init.js'
-#    ]
+    command: ['/config/init.sh']
 
   mongo-express:
     image: mongo-express
@@ -71,7 +66,7 @@ services:
       OPEN5GS:
         ipv4_address: 192.168.186.12
 
-
+#### DLA ####
   open5gs_hss:
     image: registry.the-resolvers.net/open5gs/open5gs-base
     container_name: open5gs-hss
@@ -86,6 +81,22 @@ services:
       OPEN5GS:
         ipv4_address: 192.168.186.20
 
+  open5gs_pcrf:
+    image: registry.the-resolvers.net/open5gs/open5gs-base
+    container_name: open5gs-pcrf
+    restart: unless-stopped
+    depends_on:
+      - mongo
+      - mongosetup
+    volumes:
+      - ./open5gs-pcrf:/config
+    command: /opt/open5gs/bin/open5gs-pcrfd -c /config/pcrf.yaml
+    networks:
+      OPEN5GS:
+        ipv4_address: 192.168.186.25
+
+
+#### PacketCore ####
   open5gs_mme:
     image: registry.the-resolvers.net/open5gs/open5gs-base
     container_name: open5gs-mme
@@ -98,3 +109,59 @@ services:
     networks:
       OPEN5GS:
         ipv4_address: 192.168.186.30
+
+#### SGW ####
+  open5gs_sgwc:
+    image: registry.the-resolvers.net/open5gs/open5gs-base
+    container_name: open5gs-sgwc
+    restart: unless-stopped
+    depends_on:
+      - open5gs_mme
+    volumes:
+      - ./open5gs-sgwc:/config
+    command: /opt/open5gs/bin/open5gs-sgwcd -c /config/sgwc.yaml
+    networks:
+      OPEN5GS:
+        ipv4_address: 192.168.186.40
+
+  open5gs_sgwu:
+    image: registry.the-resolvers.net/open5gs/open5gs-base
+    container_name: open5gs-sgwu
+    restart: unless-stopped
+    depends_on:
+      - open5gs_sgwc
+    volumes:
+      - ./open5gs-sgwu:/config
+    command: /opt/open5gs/bin/open5gs-sgwud -c /config/sgwu.yaml
+    networks:
+      OPEN5GS:
+        ipv4_address: 192.168.186.41
+
+
+#### PGW ####
+  open5gs_smf:
+    image: registry.the-resolvers.net/open5gs/open5gs-base
+    container_name: open5gs-smf
+    restart: unless-stopped
+    depends_on:
+      - open5gs_mme
+    volumes:
+      - ./open5gs-smf:/config
+    command: /opt/open5gs/bin/open5gs-smfd -c /config/smf.yaml
+    networks:
+      OPEN5GS:
+        ipv4_address: 192.168.186.50
+
+  open5gs_upf:
+    image: registry.the-resolvers.net/open5gs/open5gs-base
+    container_name: open5gs-upf
+    restart: unless-stopped
+    depends_on:
+      - open5gs_mme
+    volumes:
+      - ./open5gs-upf:/config
+    command: /opt/open5gs/bin/open5gs-upfd -c /config/upf.yaml
+    networks:
+      OPEN5GS:
+        ipv4_address: 192.168.186.51
+    privileged: true
