@@ -2,9 +2,7 @@ version: '3.4'
 
 networks:
   OPEN5GS:
-    driver: macvlan
-    driver_opts:
-      parent: bond0.4000
+    driver: bridge
     ipam:
       driver: default
       config:
@@ -24,7 +22,7 @@ services:
       OPEN5GS:
         ipv4_address: 192.168.186.10
     volumes:
-      - mongo_data:/data/db
+      - /home/alex/FOSDEM-PERSISTENT/mongo:/data/db
 
   mongosetup:
     image: mongo
@@ -170,14 +168,17 @@ services:
 
 ####### ENB #######
   srsran_enb:
-    image: registry.the-resolvers.net/open5gs/srsran-limesdr
+    image: registry.the-resolvers.net/open5gs/srsran-limesdr:test
     container_name: srsran-enb
     restart: unless-stopped
     depends_on:
       - open5gs_mme
     volumes:
       - ./srsran:/config
-    command: ["srsenb", "/config/enb.conf"]
+      - /tmp/.X11-unix:/tmp/.X11-unix/
+      - /dev:/dev
+    #command: ["srsenb", "/config/enb.conf"]
+    command: ["sleep", "infinity"]
     networks:
       OPEN5GS:
         ipv4_address: 192.168.186.100

@@ -23,7 +23,7 @@ mme:
           apn: data.test.net
   metrics:
     server:
-      - address: 192.168.186.30
+      - address: 0.0.0.0
         port: 9090
   gummei:
     - plmn_id:
@@ -31,10 +31,19 @@ mme:
         mnc: 99
       mme_gid: 2
       mme_code: 1
+    - plmn_id:
+        mcc: 222
+        mnc: 66
+      mme_gid: 2
+      mme_code: 1
   tai:
     - plmn_id:
         mcc: 999
         mnc: 99
+      tac: 39999
+    - plmn_id:
+        mcc: 222
+        mnc: 66
       tac: 39999
   security:
     integrity_order : [ EIA2, EIA1, EIA0 ]

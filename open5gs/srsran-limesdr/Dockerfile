@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim AS builder
+FROM debian:bullseye-slim AS builder
 
 RUN apt-get update && apt-get install -y \
         git \
@@ -49,7 +49,6 @@ RUN git clone https://github.com/myriadrf/LimeSuite.git  && \
 	ldconfig 
 
 
-
 RUN git clone https://github.com/srsRAN/srsRAN_4G.git && \
 	cd srsRAN_4G && \
 	mkdir build && \
@@ -60,7 +59,7 @@ RUN git clone https://github.com/srsRAN/srsRAN_4G.git && \
 	ldconfig
 
 
-FROM debian:bookworm-slim
+FROM debian:bullseye-slim
 
 RUN apt-get update && apt-get install -y \
                 libi2c0 \
